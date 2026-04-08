@@ -1,0 +1,26 @@
+import type { BreakingNewsResponse } from "./models";
+
+const API_TOKEN = process.env.API_TOKEN;
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
+
+export async function fetchFromAPI(path: string, options?: RequestInit) {
+  const url = `${SITE_URL}${path}`;
+
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      "x-vercel-protection-bypass": API_TOKEN,
+      ...options?.headers,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status} ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function getBreakingNews(): Promise<BreakingNewsResponse> {
+  return fetchFromAPI("/breaking-news");
+}
