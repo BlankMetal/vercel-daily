@@ -9,7 +9,7 @@ export async function fetchFromAPI(path: string, options?: RequestInit) {
   const response = await fetch(url, {
     ...options,
     headers: {
-      "x-vercel-protection-bypass": API_TOKEN,
+      "x-vercel-protection-bypass": API_TOKEN || "",
       ...options?.headers,
     },
   });
