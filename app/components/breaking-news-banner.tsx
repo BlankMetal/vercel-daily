@@ -14,7 +14,7 @@ export default function BreakingNewsBanner({
           : "border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900"
       }`}
     >
-      <div className="mx-auto flex max-w-4xl items-center gap-3">
+      <div className="mx-auto flex max-w-6xl items-center gap-3">
         <span
           className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-white ${
             article.urgent ? "bg-red-600" : "bg-zinc-600"
