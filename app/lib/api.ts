@@ -1,4 +1,4 @@
-import type { BreakingNewsResponse } from "./models";
+import type { ArticlesResponse, BreakingNewsResponse } from "./models";
 
 const API_TOKEN = process.env.API_TOKEN;
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
@@ -23,4 +23,11 @@ export async function fetchFromAPI(path: string, options?: RequestInit) {
 
 export async function getBreakingNews(): Promise<BreakingNewsResponse> {
   return fetchFromAPI("/breaking-news");
+}
+
+export async function getArticles(
+  page: number = 1,
+  limit: number = 20
+): Promise<ArticlesResponse> {
+  return fetchFromAPI(`/articles?page=${page}&limit=${limit}`);
 }
