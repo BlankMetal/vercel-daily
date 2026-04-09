@@ -11,7 +11,7 @@ export default function ArticleCard({ article }: { article: Article }) {
 
   return (
     <Link
-      href={`/articles/${article.slug}`}
+      href={`/articles/${article.id}`}
       className="group overflow-hidden rounded-xl border border-zinc-200 bg-white transition-colors hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700"
     >
       <div className="relative aspect-[16/9] overflow-hidden bg-zinc-100 dark:bg-zinc-900">

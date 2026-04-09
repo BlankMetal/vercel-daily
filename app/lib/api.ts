@@ -1,4 +1,4 @@
-import type { ArticlesResponse, BreakingNewsResponse } from "./models";
+import type { ArticleDetailResponse, ArticlesResponse, BreakingNewsResponse } from "./models";
 
 const API_TOKEN = process.env.API_TOKEN;
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
@@ -14,10 +14,6 @@ export async function fetchFromAPI(path: string, options?: RequestInit) {
     },
   });
 
-  if (!response.ok) {
-    throw new Error(`API error: ${response.status} ${response.statusText}`);
-  }
-
   return response.json();
 }
 
@@ -30,4 +26,10 @@ export async function getArticles(
   limit: number = 20
 ): Promise<ArticlesResponse> {
   return fetchFromAPI(`/articles?page=${page}&limit=${limit}`);
+}
+
+export async function getArticleDetails(
+  articleId: string
+): Promise<ArticleDetailResponse> {
+  return fetchFromAPI(`/articles/${articleId}`);
 }

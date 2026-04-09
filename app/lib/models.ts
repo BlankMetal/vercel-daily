@@ -27,6 +27,11 @@ export interface ArticlesResponse {
   };
 }
 
+export interface ArticleDetailResponse {
+  success: boolean;
+  data: Article;
+}
+
 export interface BreakingNewsArticle {
   id: string;
   headline: string;
