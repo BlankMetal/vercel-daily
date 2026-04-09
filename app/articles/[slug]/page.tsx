@@ -1,4 +1,5 @@
-import { getArticleDetails } from '@/app/lib/api';
+import ArticleCard, { ArticleErrorCard, ArticleGridSkeleton } from '@/app/components/article-card';
+import { getArticleDetails, getTrendingArticles } from '@/app/lib/api';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
@@ -111,6 +112,20 @@ async function ArticleContent({ slug }: { slug: string }) {
     );
 }
 
+async function TrendingArticles({ excludeId }: { excludeId: string }) {
+  const res = await getTrendingArticles([excludeId]).catch(() => null);
+  if (!res?.data) return <ArticleErrorCard />;
+  if (!res?.data?.length) return null;
+
+  return (
+    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      {res.data.slice(0, 4).map((article) => (
+        <ArticleCard key={article.id} article={article} />
+      ))}
+    </div>
+  );
+}
+
 export default async function ArticleDetailPage({
   params,
 }: {
@@ -120,11 +135,18 @@ export default async function ArticleDetailPage({
 
   return (
     <main className="mx-auto w-full max-w-6xl px-6 py-8">
-      <Suspense
-        fallback={<ArticleSkeleton />}
-      >
+      <Suspense fallback={<ArticleSkeleton />}>
         <ArticleContent slug={slug} />
       </Suspense>
+
+      <section className="mt-16 border-t border-zinc-200 pt-12 dark:border-zinc-800">
+        <h2 className="mb-8 text-2xl font-bold text-zinc-950 dark:text-zinc-50">
+          Trending Articles
+        </h2>
+        <Suspense fallback={<ArticleGridSkeleton count={4} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4" />}>
+          <TrendingArticles excludeId={slug} />
+        </Suspense>
+      </section>
     </main>
   );
 }

@@ -1,4 +1,4 @@
-import type { ArticleDetailResponse, ArticlesResponse, BreakingNewsResponse } from "./models";
+import type { ArticleDetailResponse, ArticlesResponse, BreakingNewsResponse, TrendingArticlesResponse } from "./models";
 
 const API_TOKEN = process.env.API_TOKEN;
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
@@ -32,4 +32,8 @@ export async function getArticleDetails(
   articleId: string
 ): Promise<ArticleDetailResponse> {
   return fetchFromAPI(`/articles/${articleId}`);
+}
+
+export async function getTrendingArticles(exclusionIds: string[]): Promise<TrendingArticlesResponse> {
+  return fetchFromAPI(`/articles/trending?exclude=${exclusionIds.join(",")}`);
 }

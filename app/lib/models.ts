@@ -46,3 +46,8 @@ export interface BreakingNewsResponse {
   success: boolean;
   data: BreakingNewsArticle;
 }
+
+export interface TrendingArticlesResponse {
+  success: boolean;
+  data: Article[];
+}
