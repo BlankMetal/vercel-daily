@@ -1,4 +1,4 @@
-import type { ArticleDetailResponse, ArticlesResponse, BreakingNewsResponse, TrendingArticlesResponse } from "./models";
+import type { ArticleDetailResponse, ArticlesResponse, BreakingNewsResponse, CategoriesResponse, TrendingArticlesResponse } from "./models";
 
 const API_TOKEN = process.env.API_TOKEN;
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
@@ -23,9 +23,20 @@ export async function getBreakingNews(): Promise<BreakingNewsResponse> {
 
 export async function getArticles(
   page: number = 1,
-  limit: number = 20
+  limit: number = 20,
+  category?: string,
+  search?: string,
+  featured?: boolean
 ): Promise<ArticlesResponse> {
-  return fetchFromAPI(`/articles?page=${page}&limit=${limit}`);
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
+  if (category) params.set("category", category);
+  if (search) params.set("search", search);
+  if (featured != null) params.set("featured", String(featured));
+
+  return fetchFromAPI(`/articles?${params}`);
 }
 
 export async function getArticleDetails(
@@ -36,4 +47,8 @@ export async function getArticleDetails(
 
 export async function getTrendingArticles(exclusionIds: string[]): Promise<TrendingArticlesResponse> {
   return fetchFromAPI(`/articles/trending?exclude=${exclusionIds.join(",")}`);
+}
+
+export async function getCategories(): Promise<CategoriesResponse> {
+  return fetchFromAPI("/categories");
 }

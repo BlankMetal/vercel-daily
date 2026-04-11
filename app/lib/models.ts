@@ -51,3 +51,14 @@ export interface TrendingArticlesResponse {
   success: boolean;
   data: Article[];
 }
+
+export interface Category {
+  slug: string;
+  name: string;
+  articleCount: number;
+}
+
+export interface CategoriesResponse {
+  success: boolean;
+  data: Category[];
+}
