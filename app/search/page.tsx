@@ -1,14 +1,44 @@
 import { Suspense } from "react";
-import { getArticles } from "@/app/lib/api";
+import { getArticles, getCategories } from "@/app/lib/api";
 import SearchInput from "@/app/components/search-input";
 import SearchArticleCard, {
   SearchResultsSkeleton,
 } from "@/app/components/search-article-card";
+import CategoryFilter, {
+  CategoryFilterSkeleton,
+} from "@/app/components/category-filter";
 
-async function SearchResults({ query, page }: { query: string; page: number }) {
-  const res = await getArticles(page, 5, undefined, query || undefined).catch(
-    () => null
-  );
+async function Categories() {
+  const res = await getCategories().catch(() => null);
+  const categories = res?.data ?? [];
+  if (categories.length === 0) return null;
+  return <CategoryFilter categories={categories} />;
+}
+
+function buildSearchUrl(query: string, category: string, page: number) {
+  const params = new URLSearchParams();
+  if (query) params.set("q", query);
+  if (category) params.set("category", category);
+  if (page > 1) params.set("page", String(page));
+  const qs = params.toString();
+  return `/search${qs ? `?${qs}` : ""}`;
+}
+
+async function SearchResults({
+  query,
+  page,
+  category,
+}: {
+  query: string;
+  page: number;
+  category: string;
+}) {
+  const res = await getArticles(
+    page,
+    5,
+    category || undefined,
+    query || undefined
+  ).catch(() => null);
 
   const articles = res?.data ?? [];
   const pagination = res?.meta?.pagination;
@@ -39,7 +69,7 @@ async function SearchResults({ query, page }: { query: string; page: number }) {
         <div className="flex items-center justify-center gap-3 pt-4">
           {pagination.page > 1 ? (
             <a
-              href={`/search?q=${encodeURIComponent(query)}&page=${pagination.page - 1}`}
+              href={buildSearchUrl(query, category, pagination.page - 1)}
               className="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
             >
               Previous
@@ -54,7 +84,7 @@ async function SearchResults({ query, page }: { query: string; page: number }) {
           </span>
           {pagination.page < pagination.totalPages ? (
             <a
-              href={`/search?q=${encodeURIComponent(query)}&page=${pagination.page + 1}`}
+              href={buildSearchUrl(query, category, pagination.page + 1)}
               className="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
             >
               Next
@@ -73,11 +103,16 @@ async function SearchResults({ query, page }: { query: string; page: number }) {
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+  searchParams: Promise<{
+    q?: string;
+    page?: string;
+    category?: string;
+  }>;
 }) {
-  const { q, page } = await searchParams;
-  const query = typeof q === "string" ? q : "";
+  const { q, page, category } = await searchParams;
+  const query = q || "";
   const currentPage = Number(page) || 1;
+  const activeCategory = category || "";
 
   return (
     <main className="mx-auto w-full max-w-6xl px-6 py-10">
@@ -88,8 +123,19 @@ export default async function SearchPage({
       <div className="flex flex-col gap-8">
         <SearchInput initialQuery={query} />
 
-        <Suspense key={`${query}-${currentPage}`} fallback={<SearchResultsSkeleton count={5} />}>
-          <SearchResults query={query} page={currentPage} />
+        <Suspense fallback={<CategoryFilterSkeleton />}>
+          <Categories />
+        </Suspense>
+
+        <Suspense
+          key={`${query}-${activeCategory}-${currentPage}`}
+          fallback={<SearchResultsSkeleton count={5} />}
+        >
+          <SearchResults
+            query={query}
+            page={currentPage}
+            category={activeCategory}
+          />
         </Suspense>
       </div>
     </main>

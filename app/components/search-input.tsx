@@ -1,23 +1,25 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function SearchInput({ initialQuery }: { initialQuery: string }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [query, setQuery] = useState(initialQuery);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const navigate = useCallback(
     (q: string) => {
+      const params = new URLSearchParams(searchParams.toString());
       const trimmed = q.trim();
-      if (trimmed) {
-        router.push(`/search?q=${encodeURIComponent(trimmed)}`);
-      } else {
-        router.push("/search");
-      }
+      if (trimmed) params.set("q", trimmed);
+      else params.delete("q");
+      params.delete("page");
+      const qs = params.toString();
+      router.push(`/search${qs ? `?${qs}` : ""}`);
     },
-    [router]
+    [router, searchParams]
   );
 
   const handleChange = useCallback(

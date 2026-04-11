@@ -50,5 +50,5 @@ export async function getTrendingArticles(exclusionIds: string[]): Promise<Trend
 }
 
 export async function getCategories(): Promise<CategoriesResponse> {
-  return fetchFromAPI("/categories");
+  return fetchFromAPI("/categories", { cache: "force-cache" });
 }
