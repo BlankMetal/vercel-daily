@@ -1,5 +1,7 @@
 import ArticleCard, { ArticleErrorCard, ArticleGridSkeleton } from '@/app/components/article-card';
+import ArticlePaywall from '@/app/components/article-paywall';
 import { getArticleDetails, getTrendingArticles } from '@/app/lib/api';
+import { getSubscription } from '@/app/lib/subscription';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
@@ -52,11 +54,18 @@ function renderInlineLinks(text: string) {
 }
 
 async function ArticleContent({ slug }: { slug: string }) {
-    const { data: article } = await getArticleDetails(slug);
-    
+    const [{ data: article }, subscription] = await Promise.all([
+        getArticleDetails(slug),
+        getSubscription(),
+    ]);
+
     if (!article) {
         notFound();
     }
+
+    const isSubscribed = subscription?.success === true && subscription.data?.status === "active";
+    const paragraphs = article.content.filter((b) => b.type === "paragraph");
+    const visibleContent = isSubscribed ? paragraphs : paragraphs.slice(0, 1);
 
     const date = new Date(article.publishedAt).toLocaleDateString("en-US", {
         year: "numeric",
@@ -101,13 +110,12 @@ async function ArticleContent({ slug }: { slug: string }) {
             </div>
 
             <div className="space-y-4 text-base leading-relaxed text-zinc-700 dark:text-zinc-300">
-                {article.content.map((block, i) => {
-                    if (block.type === "paragraph") {
-                        return <p key={i}>{renderInlineLinks(block.text)}</p>;
-                    }
-                    return null;
-                })}
+                {visibleContent.map((block, i) => (
+                    <p key={i}>{renderInlineLinks(block.text)}</p>
+                ))}
             </div>
+
+            {!isSubscribed && <ArticlePaywall />}
         </article>
     );
 }

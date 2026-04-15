@@ -62,3 +62,16 @@ export interface CategoriesResponse {
   success: boolean;
   data: Category[];
 }
+
+export interface Subscription {
+  token: string;
+  status: "active" | "inactive";
+  subscribedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SubscriptionResponse {
+  success: boolean;
+  data: Subscription;
+}

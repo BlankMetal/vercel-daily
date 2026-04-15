@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import SubscribeButton from "./subscribe-button";
 
 export default function Header() {
   return (
@@ -32,6 +33,9 @@ export default function Header() {
             Search
           </Link>
         </nav>
+        <div className="ml-auto">
+          <SubscribeButton />
+        </div>
       </div>
     </header>
   );
