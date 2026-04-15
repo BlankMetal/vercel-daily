@@ -75,3 +75,30 @@ export interface SubscriptionResponse {
   success: boolean;
   data: Subscription;
 }
+
+export interface PublicationConfig {
+  publicationName: string;
+  language: string;
+  features: {
+    newsletter: boolean;
+    bookmarks: boolean;
+    comments: boolean;
+    darkMode: boolean;
+    searchSuggestions: boolean;
+  };
+  socialLinks: {
+    twitter: string;
+    github: string;
+    discord: string;
+  };
+  seo: {
+    defaultTitle: string;
+    titleTemplate: string;
+    defaultDescription: string;
+  };
+}
+
+export interface PublicationConfigResponse {
+  success: boolean;
+  data: PublicationConfig;
+}

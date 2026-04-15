@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import ArticleCard, { ArticleErrorCard, ArticleGridSkeleton } from '@/app/components/article-card';
 import ArticlePaywall from '@/app/components/article-paywall';
 import { getArticleDetails, getTrendingArticles } from '@/app/lib/api';
@@ -5,6 +6,53 @@ import { getSubscription } from '@/app/lib/subscription';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
+
+type Props = {
+  params: Promise<{ slug: string }>;
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const { data: article } = await getArticleDetails(slug);
+
+  if (!article) {
+    return {
+      title: 'Article Not Found',
+      description: 'The requested article could not be found.',
+    };
+  }
+
+  return {
+    title: article.title,
+    description: article.excerpt,
+    keywords: article.tags.join(', '),
+    authors: [{ name: article.author.name }],
+    alternates: {
+      canonical: `/articles/${slug}`,
+    },
+    openGraph: {
+      title: article.title,
+      description: article.excerpt,
+      images: [
+        {
+          url: article.image,
+          width: 1200,
+          height: 630,
+          alt: article.title,
+        },
+      ],
+      type: 'article',
+      publishedTime: article.publishedAt,
+      authors: [article.author.name],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: article.title,
+      description: article.excerpt,
+      images: [article.image],
+    },
+  };
+}
 
 
 function ArticleSkeleton() {

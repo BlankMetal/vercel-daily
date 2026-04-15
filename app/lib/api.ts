@@ -1,4 +1,4 @@
-import type { ArticleDetailResponse, ArticlesResponse, BreakingNewsResponse, CategoriesResponse, TrendingArticlesResponse } from "./models";
+import type { ArticleDetailResponse, ArticlesResponse, BreakingNewsResponse, CategoriesResponse, PublicationConfigResponse, TrendingArticlesResponse } from "./models";
 
 const API_TOKEN = process.env.API_TOKEN;
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
@@ -51,4 +51,8 @@ export async function getTrendingArticles(exclusionIds: string[]): Promise<Trend
 
 export async function getCategories(): Promise<CategoriesResponse> {
   return fetchFromAPI("/categories", { cache: "force-cache" });
+}
+
+export async function getPublicationConfig(): Promise<PublicationConfigResponse> {
+  return fetchFromAPI("/publication/config", { cache: "force-cache" });
 }
