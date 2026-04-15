@@ -22,9 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     metadataBase: new URL(
-      process.env.NEXT_PUBLIC_VERCEL_URL
-        ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-        : "http://localhost:3000"
+        process.env.NEXT_PUBLIC_VERCEL_URL ?? "http://localhost:3000"              
     ),
     title: {
       template: seo.titleTemplate,
