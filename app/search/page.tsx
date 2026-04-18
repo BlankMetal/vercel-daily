@@ -30,20 +30,6 @@ function buildSearchUrl(query: string, category: string, page: number) {
   return `/search${qs ? `?${qs}` : ""}`;
 }
 
-async function SearchInputSection({
-  searchParams,
-}: {
-  searchParams: SearchParams;
-}) {
-  const sp = await searchParams;
-  return (
-    <SearchInput
-      initialQuery={sp.q ?? ""}
-      category={sp.category ?? ""}
-    />
-  );
-}
-
 async function SearchResultsList({
   query,
   category,
@@ -152,8 +138,8 @@ export default function SearchPage({
       </h1>
 
       <div className="flex flex-col gap-8">
-        <Suspense fallback={null}>
-          <SearchInputSection searchParams={searchParams} />
+        <Suspense fallback={<div className="h-[42px] rounded-lg bg-zinc-100 dark:bg-zinc-900" />}>
+          <SearchInput />
         </Suspense>
 
         <Suspense fallback={<CategoryFilterSkeleton />}>
