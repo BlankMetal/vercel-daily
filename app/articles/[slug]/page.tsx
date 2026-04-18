@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import ArticleCard, { ArticleErrorCard, ArticleGridSkeleton } from '@/app/components/article-card';
-import ArticlePaywall from '@/app/components/article-paywall';
+import ArticleGate from '@/app/components/article-gate';
 import { getArticleDetails, getTrendingArticles } from '@/app/lib/api';
-import { getSubscription } from '@/app/lib/subscription';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
@@ -86,34 +85,21 @@ function ArticleSkeleton() {
     );
 }
 
-function renderInlineLinks(text: string) {
-    const parts = text.split(/(\[[^\]]+\]\([^)]+\))/g);
-    return parts.map((part, i) => {
-        const match = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
-        if (match) {
-            return (
-                <a key={i} href={match[2]} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
-                    {match[1]}
-                </a>
-            );
-        }
-        return part;
-    });
-}
-
-async function ArticleContent({ slug }: { slug: string }) {
-    const [{ data: article }, subscription] = await Promise.all([
-        getArticleDetails(slug),
-        getSubscription(),
-    ]);
+async function ArticleContent({
+    params,
+}: {
+    params: Promise<{ slug: string }>;
+}) {
+    const { slug } = await params;
+    const { data: article } = await getArticleDetails(slug);
 
     if (!article) {
         notFound();
     }
 
-    const isSubscribed = subscription?.success === true && subscription.data?.status === "active";
-    const paragraphs = article.content.filter((b) => b.type === "paragraph");
-    const visibleContent = isSubscribed ? paragraphs : paragraphs.slice(0, 1);
+    const paragraphs = article.content
+        .filter((b) => b.type === "paragraph")
+        .map((b) => b.text);
 
     const date = new Date(article.publishedAt).toLocaleDateString("en-US", {
         year: "numeric",
@@ -157,18 +143,17 @@ async function ArticleContent({ slug }: { slug: string }) {
                 />
             </div>
 
-            <div className="space-y-4 text-base leading-relaxed text-zinc-700 dark:text-zinc-300">
-                {visibleContent.map((block, i) => (
-                    <p key={i}>{renderInlineLinks(block.text)}</p>
-                ))}
-            </div>
-
-            {!isSubscribed && <ArticlePaywall />}
+            <ArticleGate paragraphs={paragraphs} />
         </article>
     );
 }
 
-async function TrendingArticles({ excludeId }: { excludeId: string }) {
+async function TrendingArticles({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug: excludeId } = await params;
   const res = await getTrendingArticles([excludeId]).catch(() => null);
   if (!res?.data) return <ArticleErrorCard />;
   if (!res?.data?.length) return null;
@@ -182,17 +167,15 @@ async function TrendingArticles({ excludeId }: { excludeId: string }) {
   );
 }
 
-export default async function ArticleDetailPage({
+export default function ArticleDetailPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params;
-
   return (
     <main className="mx-auto w-full max-w-6xl px-6 py-8">
       <Suspense fallback={<ArticleSkeleton />}>
-        <ArticleContent slug={slug} />
+        <ArticleContent params={params} />
       </Suspense>
 
       <section className="mt-16 border-t border-zinc-200 pt-12 dark:border-zinc-800">
@@ -200,7 +183,7 @@ export default async function ArticleDetailPage({
           Trending Articles
         </h2>
         <Suspense fallback={<ArticleGridSkeleton count={4} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4" />}>
-          <TrendingArticles excludeId={slug} />
+          <TrendingArticles params={params} />
         </Suspense>
       </section>
     </main>

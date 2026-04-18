@@ -1,3 +1,4 @@
+import { cacheLife } from "next/cache";
 import type { ArticleDetailResponse, ArticlesResponse, BreakingNewsResponse, CategoriesResponse, PublicationConfigResponse, TrendingArticlesResponse } from "./models";
 
 const API_TOKEN = process.env.API_TOKEN;
@@ -18,6 +19,8 @@ export async function fetchFromAPI(path: string, options?: RequestInit) {
 }
 
 export async function getBreakingNews(): Promise<BreakingNewsResponse> {
+  "use cache";
+  cacheLife("breaking");
   return fetchFromAPI("/breaking-news");
 }
 
@@ -28,6 +31,9 @@ export async function getArticles(
   search?: string,
   featured?: boolean
 ): Promise<ArticlesResponse> {
+  "use cache";
+  cacheLife("articles");
+
   const params = new URLSearchParams({
     page: String(page),
     limit: String(limit),
@@ -42,17 +48,25 @@ export async function getArticles(
 export async function getArticleDetails(
   articleId: string
 ): Promise<ArticleDetailResponse> {
+  "use cache";
+  cacheLife("articles");
   return fetchFromAPI(`/articles/${articleId}`);
 }
 
 export async function getTrendingArticles(exclusionIds: string[]): Promise<TrendingArticlesResponse> {
+  "use cache";
+  cacheLife("articles");
   return fetchFromAPI(`/articles/trending?exclude=${exclusionIds.join(",")}`);
 }
 
 export async function getCategories(): Promise<CategoriesResponse> {
-  return fetchFromAPI("/categories", { cache: "force-cache" });
+  "use cache";
+  cacheLife("max");
+  return fetchFromAPI("/categories");
 }
 
 export async function getPublicationConfig(): Promise<PublicationConfigResponse> {
-  return fetchFromAPI("/publication/config", { cache: "force-cache" });
+  "use cache";
+  cacheLife("max");
+  return fetchFromAPI("/publication/config");
 }

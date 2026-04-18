@@ -1,12 +1,13 @@
 import { Suspense } from "react";
 import { getArticles, getCategories } from "@/app/lib/api";
-import SearchInput from "@/app/components/search-input";
+import SearchInput, { SearchInputFallback } from "@/app/components/search-input";
 import SearchArticleCard, {
   SearchResultsSkeleton,
 } from "@/app/components/search-article-card";
 import CategoryFilter, {
   CategoryFilterSkeleton,
 } from "@/app/components/category-filter";
+import SearchResultsBoundary from "@/app/components/search-results-boundary";
 
 async function Categories() {
   const res = await getCategories().catch(() => null);
@@ -24,19 +25,26 @@ function buildSearchUrl(query: string, category: string, page: number) {
   return `/search${qs ? `?${qs}` : ""}`;
 }
 
+type SearchParams = Promise<{
+  q?: string;
+  page?: string;
+  category?: string;
+}>;
+
 async function SearchResults({
-  query,
-  page,
-  category,
+  searchParams,
 }: {
-  query: string;
-  page: number;
-  category: string;
+  searchParams: SearchParams;
 }) {
+  const { q, page: pageParam, category } = await searchParams;
+  const query = q || "";
+  const currentPage = Number(pageParam) || 1;
+  const activeCategory = category || "";
+
   const res = await getArticles(
-    page,
+    currentPage,
     5,
-    category || undefined,
+    activeCategory || undefined,
     query || undefined
   ).catch(() => null);
 
@@ -69,7 +77,7 @@ async function SearchResults({
         <div className="flex items-center justify-center gap-3 pt-4">
           {pagination.page > 1 ? (
             <a
-              href={buildSearchUrl(query, category, pagination.page - 1)}
+              href={buildSearchUrl(query, activeCategory, pagination.page - 1)}
               className="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
             >
               Previous
@@ -84,7 +92,7 @@ async function SearchResults({
           </span>
           {pagination.page < pagination.totalPages ? (
             <a
-              href={buildSearchUrl(query, category, pagination.page + 1)}
+              href={buildSearchUrl(query, activeCategory, pagination.page + 1)}
               className="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
             >
               Next
@@ -100,20 +108,11 @@ async function SearchResults({
   );
 }
 
-export default async function SearchPage({
+export default function SearchPage({
   searchParams,
 }: {
-  searchParams: Promise<{
-    q?: string;
-    page?: string;
-    category?: string;
-  }>;
+  searchParams: SearchParams;
 }) {
-  const { q, page, category } = await searchParams;
-  const query = q || "";
-  const currentPage = Number(page) || 1;
-  const activeCategory = category || "";
-
   return (
     <main className="mx-auto w-full max-w-6xl px-6 py-10">
       <h1 className="mb-6 text-2xl font-bold text-zinc-950 dark:text-zinc-50">
@@ -121,21 +120,18 @@ export default async function SearchPage({
       </h1>
 
       <div className="flex flex-col gap-8">
-        <SearchInput initialQuery={query} />
+        <Suspense fallback={<SearchInputFallback />}>
+          <SearchInput />
+        </Suspense>
 
         <Suspense fallback={<CategoryFilterSkeleton />}>
           <Categories />
         </Suspense>
 
-        <Suspense
-          key={`${query}-${activeCategory}-${currentPage}`}
-          fallback={<SearchResultsSkeleton count={5} />}
-        >
-          <SearchResults
-            query={query}
-            page={currentPage}
-            category={activeCategory}
-          />
+        <Suspense fallback={<SearchResultsSkeleton count={5} />}>
+          <SearchResultsBoundary>
+            <SearchResults searchParams={searchParams} />
+          </SearchResultsBoundary>
         </Suspense>
       </div>
     </main>

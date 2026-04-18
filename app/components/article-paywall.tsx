@@ -1,42 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
 import { useSubscription } from "./subscription-provider";
-import { useRouter } from "next/navigation";
-
-function ContentSkeleton() {
-  return (
-    <div className="mt-8 space-y-3">
-      <div className="h-5 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
-      <div className="h-5 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
-      <div className="h-5 w-11/12 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
-      <div className="mt-4 h-5 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
-      <div className="h-5 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
-      <div className="h-5 w-10/12 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
-      <div className="mt-4 h-5 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
-      <div className="h-5 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
-      <div className="h-5 w-9/12 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
-    </div>
-  );
-}
 
 export default function ArticlePaywall() {
-  const { subscription, pending, subscribe } = useSubscription();
-  const router = useRouter();
-  const [refreshing, setRefreshing] = useState(false);
-  const wasSubscribed = useRef(false);
-
-  useEffect(() => {
-    if (subscription?.status === "active" && !wasSubscribed.current) {
-      wasSubscribed.current = true;
-      setRefreshing(true);
-      router.refresh();
-    }
-  }, [subscription, router]);
-
-  if (refreshing) {
-    return <ContentSkeleton />;
-  }
+  const { pending, subscribe } = useSubscription();
 
   return (
     <div className="mt-8 flex flex-col items-center rounded-xl border border-zinc-200 bg-white px-6 py-12 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
