@@ -1,13 +1,18 @@
 import { Suspense } from "react";
 import { getArticles, getCategories } from "@/app/lib/api";
-import SearchInput, { SearchInputFallback } from "@/app/components/search-input";
+import SearchInput from "@/app/components/search-input";
 import SearchArticleCard, {
   SearchResultsSkeleton,
 } from "@/app/components/search-article-card";
 import CategoryFilter, {
   CategoryFilterSkeleton,
 } from "@/app/components/category-filter";
-import SearchResultsBoundary from "@/app/components/search-results-boundary";
+
+type SearchParams = Promise<{
+  q?: string;
+  page?: string;
+  category?: string;
+}>;
 
 async function Categories() {
   const res = await getCategories().catch(() => null);
@@ -25,26 +30,33 @@ function buildSearchUrl(query: string, category: string, page: number) {
   return `/search${qs ? `?${qs}` : ""}`;
 }
 
-type SearchParams = Promise<{
-  q?: string;
-  page?: string;
-  category?: string;
-}>;
-
-async function SearchResults({
+async function SearchInputSection({
   searchParams,
 }: {
   searchParams: SearchParams;
 }) {
-  const { q, page: pageParam, category } = await searchParams;
-  const query = q || "";
-  const currentPage = Number(pageParam) || 1;
-  const activeCategory = category || "";
+  const sp = await searchParams;
+  return (
+    <SearchInput
+      initialQuery={sp.q ?? ""}
+      category={sp.category ?? ""}
+    />
+  );
+}
 
+async function SearchResultsList({
+  query,
+  category,
+  page,
+}: {
+  query: string;
+  category: string;
+  page: number;
+}) {
   const res = await getArticles(
-    currentPage,
+    page,
     5,
-    activeCategory || undefined,
+    category || undefined,
     query || undefined
   ).catch(() => null);
 
@@ -77,7 +89,7 @@ async function SearchResults({
         <div className="flex items-center justify-center gap-3 pt-4">
           {pagination.page > 1 ? (
             <a
-              href={buildSearchUrl(query, activeCategory, pagination.page - 1)}
+              href={buildSearchUrl(query, category, pagination.page - 1)}
               className="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
             >
               Previous
@@ -92,7 +104,7 @@ async function SearchResults({
           </span>
           {pagination.page < pagination.totalPages ? (
             <a
-              href={buildSearchUrl(query, activeCategory, pagination.page + 1)}
+              href={buildSearchUrl(query, category, pagination.page + 1)}
               className="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
             >
               Next
@@ -108,6 +120,26 @@ async function SearchResults({
   );
 }
 
+async function SearchResults({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const sp = await searchParams;
+  const query = sp.q ?? "";
+  const category = sp.category ?? "";
+  const page = Number(sp.page) || 1;
+
+  return (
+    <Suspense
+      key={`${query}-${category}-${page}`}
+      fallback={<SearchResultsSkeleton count={5} />}
+    >
+      <SearchResultsList query={query} category={category} page={page} />
+    </Suspense>
+  );
+}
+
 export default function SearchPage({
   searchParams,
 }: {
@@ -120,8 +152,8 @@ export default function SearchPage({
       </h1>
 
       <div className="flex flex-col gap-8">
-        <Suspense fallback={<SearchInputFallback />}>
-          <SearchInput />
+        <Suspense fallback={null}>
+          <SearchInputSection searchParams={searchParams} />
         </Suspense>
 
         <Suspense fallback={<CategoryFilterSkeleton />}>
@@ -129,9 +161,7 @@ export default function SearchPage({
         </Suspense>
 
         <Suspense fallback={<SearchResultsSkeleton count={5} />}>
-          <SearchResultsBoundary>
-            <SearchResults searchParams={searchParams} />
-          </SearchResultsBoundary>
+          <SearchResults searchParams={searchParams} />
         </Suspense>
       </div>
     </main>
