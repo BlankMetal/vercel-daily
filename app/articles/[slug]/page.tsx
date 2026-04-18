@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import ArticleCard, { ArticleErrorCard, ArticleGridSkeleton } from '@/app/components/article-card';
 import ArticleGate from '@/app/components/article-gate';
-import { getArticleDetails, getTrendingArticles } from '@/app/lib/api';
+import { getArticleDetails, getArticles, getTrendingArticles } from '@/app/lib/api';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
@@ -9,6 +9,11 @@ import { Suspense } from 'react';
 type Props = {
   params: Promise<{ slug: string }>;
 };
+
+export async function generateStaticParams() {
+  const { data } = await getArticles(1, 20);
+  return data?.map((article) => ({ slug: article.id })) ?? [];
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
